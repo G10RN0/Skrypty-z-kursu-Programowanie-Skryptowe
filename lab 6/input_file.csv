@@ -1,0 +1,7 @@
+Component;GenerateReport
+Computername;True
+Manufacturer;True
+Model;True
+SerialNumber;True
+CpuName;False
+RAM;True
