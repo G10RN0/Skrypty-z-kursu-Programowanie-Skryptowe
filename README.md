@@ -29,4 +29,11 @@ API w Powershell
 exiftool w bash
 
 ## LAB11
+
 Szyfrowanie i podpisywanie plików w python
+
+## LAB12
+
+Zastosowanie programowania skryptowgo, w skrytpach do skanowaia i do ataku słownikowego
+fuzz-list ~ https://github.com/danielmiessler/SecLists/blob/master/Fuzzing/Databases/SQLi/Generic-SQLi.txt
+Wszystkie skrypty są bardzo w proste w działniu i stanowią dobrą podstwe do prawdziwych skanerów
