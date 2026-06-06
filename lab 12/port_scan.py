@@ -1,6 +1,7 @@
 import socket
 import sys
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import tqdm
 
 def scan_port(ip, port):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -9,9 +10,10 @@ def scan_port(ip, port):
             if result == 0:
                 try:
                     service = socket.getservbyport(port, 'tcp')
-                    print(f"Port {port} is open. Service: {service}")
+                    return port, service
                 except OSError:
-                    print(f"Port {port} is open. Service: Unknown")
+                    return port, "Unknown"
+    return None
 
 if __name__ == "__main__":
     ip = input("podaj adres IP: ")
@@ -27,8 +29,19 @@ if __name__ == "__main__":
         
     try:
         with ThreadPoolExecutor(max_workers=20) as executor:
+            futures = []
             for port in ports_to_scan:
-                executor.submit(scan_port, ip, port)
+                futures.append(executor.submit(scan_port, ip, port))
+            
+            results = []
+            for future in tqdm.tqdm(as_completed(futures), total=len(futures), desc="Skanowanie portów", unit="port"):
+                results.append(future.result())
+            
+        for result in results:
+            if result is not None:
+                print(f"Port {result[0]} jest otwarty (Service: {result[1]})")
+
+
     except KeyboardInterrupt:
         print("\nSkanowanie przerwane przez użytkownika.")
         sys.exit(0)
