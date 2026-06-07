@@ -6,6 +6,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 #importujemy bibliotekę do wyświetlania postępu skanowania
 import tqdm
 
+WORKERS = 20
+
 #funckja która skanuje pojedyńczy port
 def scan_port(ip, port):
     #tworzymy gniazdo socket | AF_INET - oznacza że używamy protokołu IPv4, SOCK_STREAM - oznacza że używamy protokołu TCP
@@ -39,7 +41,7 @@ if __name__ == "__main__":
     try:
         #używamy ThreadPoolExecutor do skanowania portów w wielu wątkach jednocześnie, co przyspiesza proces skanowania
         #max_workers=20 oznacza że jednocześnie będzie skanowanych 20 portów
-        with ThreadPoolExecutor(max_workers=20) as executor:
+        with ThreadPoolExecutor(max_workers=WORKERS) as executor:
             
             futures = []
             for port in ports_to_scan:

