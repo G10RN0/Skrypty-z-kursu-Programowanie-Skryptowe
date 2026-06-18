@@ -41,3 +41,7 @@ fuzz-list ~ https://github.com/danielmiessler/SecLists/blob/master/Fuzzing/Datab
 directory-lsit ~ https://github.com/brutalgg/dirbuster-wordlist/blob/master/directory-list-2.3-medium.txt
 
 Wszystkie skrypty są bardzo w proste w działniu i stanowią dobrą podstwe do prawdziwych skanerów
+
+## LAB13
+Automaztyzcja wysyłania backup'ów do servera ftp w bash
+Automatyzacja server'a ssh i sprawdzanie jego logów
